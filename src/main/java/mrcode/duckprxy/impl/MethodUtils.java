@@ -65,6 +65,11 @@ public class MethodUtils {
         } catch (Exception e) {
             throw new RuntimeException("Caught unexpected exception", e);
         }
+        return defaultMethodStrategy(defaultMethod);
+    }
+
+    public static MethodRetrieveStrategy defaultMethodStrategy(
+            final Method defaultMethod) {
         return new MethodRetrieveStrategy() {
             public Method getMethod(
                     final String name,

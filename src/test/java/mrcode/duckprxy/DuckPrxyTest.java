@@ -80,6 +80,17 @@ public class DuckPrxyTest extends TestCase{
         }
     }
     
+    public static class DelegateThree {
+        public int bar() {
+            return 18;
+        }
+        @DuckMethod(fallback = true)
+        public int defaultMethod(
+                @DuckArg(DuckArgType.NAME) String name) {
+            return name.length();
+        }
+    }
+    
     @Test
     public void testPrxyImpl() {
         testPrxy(getDuckPrxy());
@@ -161,6 +172,14 @@ public class DuckPrxyTest extends TestCase{
                         "-bar/2/3/", "-mybar/abc/", "-barTwo/4/2/",
                         "baz(ABC,DEF)"}),
                 delegate.getCallRecord());
+    }
+    
+    public void testPrxyWithFallback(DuckPrxy duckPrxy) {
+        final DelegateThree delegate = new DelegateThree();
+        final MyInterfaceOne proxy = duckPrxy.makeProxy(
+                MyInterfaceOne.class, delegate, MyInterfaceTwo.class);
+        assertEquals(18, proxy.bar(2, 3));
+        assertEquals(3, proxy.baz());
     }
     
     public DuckPrxy getDuckPrxy() {

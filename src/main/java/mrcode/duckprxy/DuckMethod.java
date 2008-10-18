@@ -11,4 +11,6 @@ public @interface DuckMethod {
 
     String[] value() default {};
     
+    boolean fallback() default false;
+    
 }

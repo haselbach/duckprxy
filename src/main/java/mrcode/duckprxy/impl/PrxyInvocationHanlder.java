@@ -23,6 +23,7 @@ public class PrxyInvocationHanlder implements InvocationHandler {
         this.delegate = delegate;
         this.delegateClass = delegate.getClass();
         Map<Pattern, Method> methodMap = new HashMap<Pattern, Method>();
+        Method fallbackMethod = null;
         for (final Method method : delegateClass.getMethods()) {
             final DuckMethod duckMethod =
                 method.getAnnotation(DuckMethod.class);
@@ -30,13 +31,17 @@ public class PrxyInvocationHanlder implements InvocationHandler {
                 for (final String value : duckMethod.value()) {
                     methodMap.put(Pattern.compile(value), method);
                 }
+                if (duckMethod.fallback()) {
+                    fallbackMethod = method;
+                }
             }
         }
         this.strategies = Arrays.asList(new MethodRetrieveStrategy[] {
                 MethodUtils.methodByNameAndArgsStrategy(delegateClass),
                 MethodUtils.methodByNameWithoutArgsStrategy(delegateClass),
                 MethodUtils.methodByPatternStrategy(delegateClass, methodMap),
-                MethodUtils.defaultMethodStrategy()
+                fallbackMethod == null ? MethodUtils.defaultMethodStrategy()
+                        : MethodUtils.defaultMethodStrategy(fallbackMethod)
         });
     }
 
