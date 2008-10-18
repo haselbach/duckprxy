@@ -4,6 +4,7 @@ public enum DuckArgType {
     
     NULL,
     NAME,
-    ARGS
+    ARGS,
+    ARGN
 
 }

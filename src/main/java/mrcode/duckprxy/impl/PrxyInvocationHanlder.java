@@ -76,7 +76,9 @@ public class PrxyInvocationHanlder implements InvocationHandler {
                         break;
                     case ARGS:
                         delegateArgs[annoIndex] = args;
-                    default:
+                        break;
+                    case ARGN:
+                        delegateArgs[annoIndex] = args[duckArg.pos()];
                         break;
                 }
             }

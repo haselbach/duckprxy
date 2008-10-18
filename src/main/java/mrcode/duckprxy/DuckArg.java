@@ -11,4 +11,6 @@ public @interface DuckArg {
 
     DuckArgType value() default DuckArgType.NULL;
     
+    int pos() default -1;
+    
 }

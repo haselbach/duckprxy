@@ -25,7 +25,7 @@ public class DuckPrxyTest extends TestCase{
     interface MyInterfaceTwo {
         void fooTwo(String s);
         int barTwo(int x, int y);
-        int bazTwo(String s);
+        int bazTwo(String s, String t);
     }
     
     public static class DelegateOne {
@@ -68,6 +68,12 @@ public class DuckPrxyTest extends TestCase{
             }
             callRecord.add(builder.toString());
             return 6;
+        }
+        public int bazTwo(
+                @DuckArg(value = DuckArgType.ARGN, pos=1) String s1,
+                @DuckArg(value = DuckArgType.ARGN, pos=0) String s2) {
+            callRecord.add("baz(" + s1 + "," + s2 + ")");
+            return 7;
         }
         public List<String> getCallRecord() {
             return callRecord;
@@ -148,9 +154,12 @@ public class DuckPrxyTest extends TestCase{
         proxy.mybar("abc");
         assertEquals(6, proxyAsInterfaceTwo.barTwo(4, 2));
         
+        assertEquals(7, proxyAsInterfaceTwo.bazTwo("DEF", "ABC"));
+        
         assertEquals(
                 Arrays.asList(new String[] {"Foo", "Foo",
-                        "-bar/2/3/", "-mybar/abc/", "-barTwo/4/2/"}),
+                        "-bar/2/3/", "-mybar/abc/", "-barTwo/4/2/",
+                        "baz(ABC,DEF)"}),
                 delegate.getCallRecord());
     }
     
