@@ -6,6 +6,13 @@ import java.lang.reflect.Proxy;
 import mrcode.duckprxy.DuckPrxy;
 import mrcode.duckprxy.impl.PrxyInvocationHanlder;
 
+/**
+ * A (more or less) simple implementation of DuckProxy that uses java
+ * reflections. How to delegate is mostly determined when a method is
+ * called.
+ * 
+ * @author Christian Haselbach
+ */
 public class DuckPrxyImpl implements DuckPrxy {
     
     public <T> T makeProxy(

@@ -13,6 +13,11 @@ import mrcode.duckprxy.DuckArg;
 import mrcode.duckprxy.DuckMethod;
 import mrcode.duckprxy.impl.MethodUtils.MethodRetrieveStrategy;
 
+/**
+ * The heart of the the {@link DuckPrxyImpl} implementation.
+ * 
+ * @author Christian Haselbach
+ */
 public class PrxyInvocationHanlder implements InvocationHandler {
     
     private final Object delegate;
@@ -99,8 +104,10 @@ public class PrxyInvocationHanlder implements InvocationHandler {
         for (int annoIndex = 0; annoIndex < len; annoIndex++) {
             DuckArg duckArg = getDuckArg(annotations[annoIndex]);
             if (duckArg == null) {
-                delegateArgs[annoIndex] = args[argIndex];
-                argIndex++;
+                if (argIndex < args.length) {
+                    delegateArgs[annoIndex] = args[argIndex];
+                    argIndex++;
+                }
             } else {
                 switch (duckArg.value()) {
                     case NULL:
@@ -112,7 +119,9 @@ public class PrxyInvocationHanlder implements InvocationHandler {
                         delegateArgs[annoIndex] = args;
                         break;
                     case ARGN:
-                        delegateArgs[annoIndex] = args[duckArg.pos()];
+                        if (duckArg.pos() < args.length) {
+                            delegateArgs[annoIndex] = args[duckArg.pos()];
+                        }
                         break;
                 }
             }
