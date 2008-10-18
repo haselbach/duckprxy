@@ -91,6 +91,17 @@ public class DuckPrxyTest extends TestCase{
         }
     }
     
+    public static class DelegateFour {
+        private DelegateThree delegateThree = new DelegateThree();
+        public int baz() {
+            return 2;
+        }
+        @DuckMethod(subdelegate = true)
+        public DelegateThree getDelegateThree() {
+            return delegateThree;
+        }
+    }
+    
     @Test
     public void testPrxyImpl() {
         testPrxy(getDuckPrxy());
@@ -104,6 +115,16 @@ public class DuckPrxyTest extends TestCase{
     @Test
     public void testPrxyWithPatterns() {
         testPrxyWithPatterns(getDuckPrxy());
+    }
+    
+    @Test
+    public void testPrxyWithFallback() {
+        testPrxyWithFallback(getDuckPrxy());
+    }
+    
+    @Test
+    public void testPrxyWithSubdelegate() {
+        testPrxyWithSubdelegate(getDuckPrxy());
     }
     
     public void testPrxy(DuckPrxy duckPrxy) {
@@ -180,6 +201,15 @@ public class DuckPrxyTest extends TestCase{
                 MyInterfaceOne.class, delegate, MyInterfaceTwo.class);
         assertEquals(18, proxy.bar(2, 3));
         assertEquals(3, proxy.baz());
+    }
+    
+    public void testPrxyWithSubdelegate(DuckPrxy duckPrxy) {
+        final DelegateFour delegate = new DelegateFour();
+        final MyInterfaceOne proxy = duckPrxy.makeProxy(
+                MyInterfaceOne.class, delegate, MyInterfaceTwo.class);
+        assertEquals(2, proxy.baz());
+        assertEquals(18, proxy.bar(2, 3));
+        assertEquals(5, proxy.myfoo());
     }
     
     public DuckPrxy getDuckPrxy() {

@@ -13,4 +13,6 @@ public @interface DuckMethod {
     
     boolean fallback() default false;
     
+    boolean subdelegate() default false;
+    
 }

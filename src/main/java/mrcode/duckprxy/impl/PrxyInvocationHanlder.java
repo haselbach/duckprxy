@@ -18,12 +18,15 @@ public class PrxyInvocationHanlder implements InvocationHandler {
     private final Object delegate;
     private final Class<?> delegateClass;
     private final List<MethodRetrieveStrategy> strategies;
+    private final InvocationHandler subDelegate;
+    private final Method subDelegateGetter;
     
     public PrxyInvocationHanlder(final Object delegate) {
         this.delegate = delegate;
         this.delegateClass = delegate.getClass();
         Map<Pattern, Method> methodMap = new HashMap<Pattern, Method>();
         Method fallbackMethod = null;
+        Method subDelegateGetter = null;
         for (final Method method : delegateClass.getMethods()) {
             final DuckMethod duckMethod =
                 method.getAnnotation(DuckMethod.class);
@@ -34,15 +37,28 @@ public class PrxyInvocationHanlder implements InvocationHandler {
                 if (duckMethod.fallback()) {
                     fallbackMethod = method;
                 }
+                if (duckMethod.subdelegate()) {
+                    subDelegateGetter = method;
+                }
             }
+        }
+        MethodRetrieveStrategy fallbackStrategy;
+        if (subDelegateGetter != null) {
+            fallbackStrategy = MethodUtils.defaultMethodStrategy(null);
+        } else if (fallbackMethod != null) {
+            fallbackStrategy =
+                MethodUtils.defaultMethodStrategy(fallbackMethod);
+        } else {
+            fallbackStrategy = MethodUtils.defaultMethodStrategy();
         }
         this.strategies = Arrays.asList(new MethodRetrieveStrategy[] {
                 MethodUtils.methodByNameAndArgsStrategy(delegateClass),
                 MethodUtils.methodByNameWithoutArgsStrategy(delegateClass),
                 MethodUtils.methodByPatternStrategy(delegateClass, methodMap),
-                fallbackMethod == null ? MethodUtils.defaultMethodStrategy()
-                        : MethodUtils.defaultMethodStrategy(fallbackMethod)
-        });
+                fallbackStrategy});
+        this.subDelegateGetter = subDelegateGetter;
+        this.subDelegate = subDelegateGetter == null ? null :
+            new PrxyInvocationHanlder(getSubDelegate(delegate));
     }
 
     public Object invoke(
@@ -53,9 +69,22 @@ public class PrxyInvocationHanlder implements InvocationHandler {
         final String name = method.getName();
         final Class<?>[] parameterTypes = method.getParameterTypes();
         final Method delegateMethod = getDelegateMethod(name, parameterTypes);
-        return delegateMethod.invoke(
-                delegate,
-                getDelegateArguments(name, delegateMethod, args));
+        if (delegateMethod != null) {
+            return delegateMethod.invoke(
+                    delegate,
+                    getDelegateArguments(name, delegateMethod, args));
+        }
+        return subDelegate.invoke(getSubDelegate(delegate), method, args);
+    }
+
+    private Object getSubDelegate(Object proxy) {
+        try {
+            return subDelegateGetter.invoke(delegate, (Object[])null);
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    "Got unexpected exception in sub delegate getter",
+                    e);
+        }
     }
 
     private Object[] getDelegateArguments(
@@ -113,9 +142,6 @@ public class PrxyInvocationHanlder implements InvocationHandler {
             if (delegateMethod != null) {
                 break;
             }
-        }
-        if (delegateMethod == null) {
-            throw new RuntimeException("Got no delegate method for method:" + name);
         }
         return delegateMethod;
     }
