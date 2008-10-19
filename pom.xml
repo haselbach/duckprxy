@@ -4,9 +4,17 @@
   <groupId>mrcode</groupId>
   <artifactId>duckprxy</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.1</version>
   <name>duckprxy</name>
-  <url>http://mr-co.de/projects/duckprxy</url>
+  <url>http://mr-co.de/projects/duckprxy/</url>
+  <contributors>
+    <contributor>
+      <name>Christian Haselbach</name>
+      <email>code@mr-co.de</email>
+      <organization>Mr. Code</organization>
+      <organizationUrl>http://mr-co.de/</organizationUrl>
+    </contributor>
+  </contributors>
   <description>
   Duck typing for java.
   </description>

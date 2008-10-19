@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.Test;
 
 import mrcode.duckprxy.impl.DuckPrxyImpl;
+import mrcode.duckprxy.impl.DuckPrxyPreCompImpl;
 
 import junit.framework.TestCase;
 
@@ -108,8 +109,18 @@ public class DuckPrxyTest extends TestCase{
     }
     
     @Test
+    public void testPrxyPreCompImpl() {
+        testPrxy(getDuckPreCompPrxy());
+    }
+    
+    @Test
     public void testPrxyImplMissingMethod() {
         testPrxyMissingMethod(getDuckPrxy());
+    }
+    
+    @Test
+    public void testPrxyPreCompImplMissingMethod() {
+        testPrxyMissingMethod(getDuckPreCompPrxy());
     }
     
     @Test
@@ -118,13 +129,28 @@ public class DuckPrxyTest extends TestCase{
     }
     
     @Test
+    public void testPrxyPreCompWithPatterns() {
+        testPrxyWithPatterns(getDuckPreCompPrxy());
+    }
+    
+    @Test
     public void testPrxyWithFallback() {
         testPrxyWithFallback(getDuckPrxy());
     }
     
     @Test
+    public void testPrxyPreCompWithFallback() {
+        testPrxyWithFallback(getDuckPreCompPrxy());
+    }
+    
+    @Test
     public void testPrxyWithSubdelegate() {
         testPrxyWithSubdelegate(getDuckPrxy());
+    }
+    
+    @Test
+    public void testPrxyPreCompWithSubdelegate() {
+        testPrxyWithSubdelegate(getDuckPreCompPrxy());
     }
     
     public void testPrxy(DuckPrxy duckPrxy) {
@@ -216,4 +242,7 @@ public class DuckPrxyTest extends TestCase{
         return new DuckPrxyImpl();
     }
 
+    public DuckPrxy getDuckPreCompPrxy() {
+        return new DuckPrxyPreCompImpl();
+    }
 }

@@ -92,7 +92,7 @@ public class PrxyInvocationHanlder implements InvocationHandler {
         }
     }
 
-    private Object[] getDelegateArguments(
+    public static Object[] getDelegateArguments(
             final String name,
             final Method delegateMethod,
             final Object[] args) {
@@ -129,7 +129,7 @@ public class PrxyInvocationHanlder implements InvocationHandler {
         return delegateArgs;
     }
 
-    private DuckArg getDuckArg(Annotation[] annotations) {
+    public static DuckArg getDuckArg(Annotation[] annotations) {
         for (Annotation annotation : annotations) {
             if (DuckArg.class.equals(annotation.annotationType())) {
                 return (DuckArg) annotation;
