@@ -7,6 +7,12 @@
   <version>0.1</version>
   <name>duckprxy</name>
   <url>http://mr-co.de/projects/duckprxy/</url>
+  <licenses>
+    <license>
+      <name>BSD License</name>
+      <url>http://www.opensource.org/licenses/bsd-license.php</url>
+    </license>
+  </licenses>
   <contributors>
     <contributor>
       <name>Christian Haselbach</name>
