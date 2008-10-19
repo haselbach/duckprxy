@@ -1,16 +1,9 @@
 package mrcode.duckprxy.impl;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 
-import mrcode.duckprxy.DuckArg;
-import mrcode.duckprxy.DuckMethod;
 import mrcode.duckprxy.impl.MethodUtils.MethodRetrieveStrategy;
 
 /**
@@ -18,50 +11,20 @@ import mrcode.duckprxy.impl.MethodUtils.MethodRetrieveStrategy;
  * 
  * @author Christian Haselbach
  */
-public class PrxyInvocationHanlder implements InvocationHandler {
+public class PrxyInvocationHanlder extends AbstractPrxyInvocationHandler {
     
-    private final Object delegate;
     private final Class<?> delegateClass;
     private final List<MethodRetrieveStrategy> strategies;
     private final InvocationHandler subDelegate;
     private final Method subDelegateGetter;
     
     public PrxyInvocationHanlder(final Object delegate) {
-        this.delegate = delegate;
+        super(delegate);
         this.delegateClass = delegate.getClass();
-        Map<Pattern, Method> methodMap = new HashMap<Pattern, Method>();
-        Method fallbackMethod = null;
-        Method subDelegateGetter = null;
-        for (final Method method : delegateClass.getMethods()) {
-            final DuckMethod duckMethod =
-                method.getAnnotation(DuckMethod.class);
-            if (duckMethod != null) {
-                for (final String value : duckMethod.value()) {
-                    methodMap.put(Pattern.compile(value), method);
-                }
-                if (duckMethod.fallback()) {
-                    fallbackMethod = method;
-                }
-                if (duckMethod.subdelegate()) {
-                    subDelegateGetter = method;
-                }
-            }
-        }
-        MethodRetrieveStrategy fallbackStrategy;
-        if (subDelegateGetter != null) {
-            fallbackStrategy = MethodUtils.defaultMethodStrategy(null);
-        } else if (fallbackMethod != null) {
-            fallbackStrategy =
-                MethodUtils.defaultMethodStrategy(fallbackMethod);
-        } else {
-            fallbackStrategy = MethodUtils.defaultMethodStrategy();
-        }
-        this.strategies = Arrays.asList(new MethodRetrieveStrategy[] {
-                MethodUtils.methodByNameAndArgsStrategy(delegateClass),
-                MethodUtils.methodByNameWithoutArgsStrategy(delegateClass),
-                MethodUtils.methodByPatternStrategy(delegateClass, methodMap),
-                fallbackStrategy});
-        this.subDelegateGetter = subDelegateGetter;
+        DelegateClassInformation info =
+            getDelegateClassInformation(delegateClass);
+        this.strategies = makeStrategies(delegateClass, info);
+        this.subDelegateGetter = info.subDelegateGetter;
         this.subDelegate = subDelegateGetter == null ? null :
             new PrxyInvocationHanlder(getSubDelegate(delegate));
     }
@@ -82,62 +45,6 @@ public class PrxyInvocationHanlder implements InvocationHandler {
         return subDelegate.invoke(getSubDelegate(delegate), method, args);
     }
 
-    private Object getSubDelegate(Object proxy) {
-        try {
-            return subDelegateGetter.invoke(delegate, (Object[])null);
-        } catch (Exception e) {
-            throw new RuntimeException(
-                    "Got unexpected exception in sub delegate getter",
-                    e);
-        }
-    }
-
-    public static Object[] getDelegateArguments(
-            final String name,
-            final Method delegateMethod,
-            final Object[] args) {
-        final Annotation[][] annotations =
-            delegateMethod.getParameterAnnotations();
-        final int len = annotations.length; 
-        int argIndex = 0;
-        final Object[] delegateArgs = new Object[len];
-        for (int annoIndex = 0; annoIndex < len; annoIndex++) {
-            DuckArg duckArg = getDuckArg(annotations[annoIndex]);
-            if (duckArg == null) {
-                if (argIndex < args.length) {
-                    delegateArgs[annoIndex] = args[argIndex];
-                    argIndex++;
-                }
-            } else {
-                switch (duckArg.value()) {
-                    case NULL:
-                        break;
-                    case NAME:
-                        delegateArgs[annoIndex] = name;
-                        break;
-                    case ARGS:
-                        delegateArgs[annoIndex] = args;
-                        break;
-                    case ARGN:
-                        if (duckArg.pos() < args.length) {
-                            delegateArgs[annoIndex] = args[duckArg.pos()];
-                        }
-                        break;
-                }
-            }
-        }
-        return delegateArgs;
-    }
-
-    public static DuckArg getDuckArg(Annotation[] annotations) {
-        for (Annotation annotation : annotations) {
-            if (DuckArg.class.equals(annotation.annotationType())) {
-                return (DuckArg) annotation;
-            }
-        }
-        return null;
-    }
-
     private Method getDelegateMethod(
             final String name,
             final Class<?>[] parameterTypes) {
@@ -153,6 +60,10 @@ public class PrxyInvocationHanlder implements InvocationHandler {
             }
         }
         return delegateMethod;
+    }
+
+    public Method getSubDelegateGetter() {
+        return subDelegateGetter;
     }
     
 }
