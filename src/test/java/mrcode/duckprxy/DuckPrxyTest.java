@@ -6,28 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Test;
-
+import junit.framework.TestCase;
 import mrcode.duckprxy.impl.DuckPrxyImpl;
 import mrcode.duckprxy.impl.DuckPrxyPreCompImpl;
+import mrcode.duckprxy.impl.JavassistDuckPrxy;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 public class DuckPrxyTest extends TestCase{
-    
-    interface MyInterfaceOne {
-        void foo();
-        int bar(int x, int y);
-        int baz();
-        int myfoo();
-        void mybar(String s);
-    }
-    
-    interface MyInterfaceTwo {
-        void fooTwo(String s);
-        int barTwo(int x, int y);
-        int bazTwo(String s, String t);
-    }
     
     public static class DelegateOne {
         final List<String> callRecord = new ArrayList<String>();
@@ -114,6 +100,11 @@ public class DuckPrxyTest extends TestCase{
     }
     
     @Test
+    public void testJavassistPrxy() {
+        testPrxy(getDuckPrxyJavassist());
+    }
+    
+    @Test
     public void testPrxyImplMissingMethod() {
         testPrxyMissingMethod(getDuckPrxy());
     }
@@ -121,6 +112,11 @@ public class DuckPrxyTest extends TestCase{
     @Test
     public void testPrxyPreCompImplMissingMethod() {
         testPrxyMissingMethod(getDuckPreCompPrxy());
+    }
+    
+    @Test
+    public void testJavassistPrxyMissingMethod() {
+        testPrxyMissingMethod(getDuckPrxyJavassist());
     }
     
     @Test
@@ -134,6 +130,11 @@ public class DuckPrxyTest extends TestCase{
     }
     
     @Test
+    public void testJavassistPrxyWithPatterns() {
+        testPrxyWithPatterns(getDuckPrxyJavassist());
+    }
+    
+    @Test
     public void testPrxyWithFallback() {
         testPrxyWithFallback(getDuckPrxy());
     }
@@ -144,6 +145,11 @@ public class DuckPrxyTest extends TestCase{
     }
     
     @Test
+    public void testJavassistPrxyWithFallback() {
+        testPrxyWithFallback(getDuckPrxyJavassist());
+    }
+    
+    @Test
     public void testPrxyWithSubdelegate() {
         testPrxyWithSubdelegate(getDuckPrxy());
     }
@@ -151,6 +157,11 @@ public class DuckPrxyTest extends TestCase{
     @Test
     public void testPrxyPreCompWithSubdelegate() {
         testPrxyWithSubdelegate(getDuckPreCompPrxy());
+    }
+    
+    @Test
+    public void testJavassistPrxyWithSubdelegate() {
+        testPrxyWithSubdelegate(getDuckPrxyJavassist());
     }
     
     public void testPrxy(DuckPrxy duckPrxy) {
@@ -240,6 +251,10 @@ public class DuckPrxyTest extends TestCase{
     
     public DuckPrxy getDuckPrxy() {
         return new DuckPrxyImpl();
+    }
+
+    public DuckPrxy getDuckPrxyJavassist() {
+        return new JavassistDuckPrxy("duckprxy" + System.currentTimeMillis() + ":");
     }
 
     public DuckPrxy getDuckPreCompPrxy() {
