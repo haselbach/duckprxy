@@ -61,12 +61,20 @@ public class JavassistDuckPrxy implements DuckPrxy {
      */
     private Map<String, Class<?>> classMap = new HashMap<String, Class<?>>();
     
+    /**
+     * Prefix for the generated class names.
+     */
     private final String classNamePrefix;
 
     public JavassistDuckPrxy() {
         this("duckprxy:");
     }
     
+    /**
+     * Constructor to set own class name prefix.
+     * Normally, you do not want to override the class name prefix.
+     * @param classNamePrefix  Override value for class name prefix.
+     */
     public JavassistDuckPrxy(String classNamePrefix) {
         this.classNamePrefix = classNamePrefix;
     }

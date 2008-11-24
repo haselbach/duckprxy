@@ -7,12 +7,14 @@
   <version>0.1</version>
   <name>duckprxy</name>
   <url>http://mr-co.de/projects/duckprxy/</url>
+
   <licenses>
     <license>
       <name>BSD License</name>
       <url>http://www.opensource.org/licenses/bsd-license.php</url>
     </license>
   </licenses>
+
   <contributors>
     <contributor>
       <name>Christian Haselbach</name>
@@ -21,9 +23,11 @@
       <organizationUrl>http://mr-co.de/</organizationUrl>
     </contributor>
   </contributors>
+
   <description>
   Duck typing for java.
   </description>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -31,7 +35,30 @@
       <version>4.5</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>javassist</groupId>
+      <artifactId>javassist</artifactId>
+      <version>3.9.0</version>
+    </dependency>
   </dependencies>
+
+  <build>
+    <finalName>propload</finalName>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.5</source>
+            <target>1.5</target>
+          </configuration>
+        </plugin>
+
+      </plugins>
+    </pluginManagement>
+  </build>
+
   <reporting>
     <plugins>
       <plugin>
