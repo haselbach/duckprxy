@@ -43,7 +43,7 @@
   </dependencies>
 
   <build>
-    <finalName>propload</finalName>
+    <finalName>duckprxy-0.2</finalName>
     <pluginManagement>
       <plugins>
         <plugin>
