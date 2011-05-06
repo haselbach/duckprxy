@@ -3,8 +3,6 @@ package mrcode.duckprxy.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,19 +82,19 @@ public class JavassistDuckPrxy implements DuckPrxy {
             final Object delegate,
             final Class<?>... interfaces) {
         final Class<?> delegateClass = delegate.getClass();
-        final List<Class<?>> allInterfaces =
-            new ArrayList<Class<?>>(interfaces.length + 1);
-        allInterfaces.add(mainInterface);
-        allInterfaces.addAll(Arrays.asList(interfaces));
         final ClassPool classPool = ClassPool.getDefault();
-        final String className = createClassName(delegateClass, allInterfaces);
+        final String className = createClassName(
+                delegateClass,
+                mainInterface,
+                interfaces);
         try {
             @SuppressWarnings("unchecked")
             final Class<T> proxyClass = (Class<T>) getProxyClass(
                     className,
                     delegate,
                     delegateClass,
-                    allInterfaces,
+                    mainInterface,
+                    interfaces,
                     classPool);
             final T result = proxyClass.newInstance();
             result.getClass().getField("delegate").set(result, delegate);
@@ -111,7 +109,8 @@ public class JavassistDuckPrxy implements DuckPrxy {
             final String className,
             final Object delegate,
             final Class<?> delegateClass,
-            final List<Class<?>> allInterfaces,
+            final Class<?> mainInterface,
+            final Class<?>[] interfaces,
             final ClassPool classPool)
     throws CannotCompileException, NotFoundException {
         if (classMap.containsKey(className)) {
@@ -121,7 +120,8 @@ public class JavassistDuckPrxy implements DuckPrxy {
                 className,
                 delegate,
                 delegateClass,
-                allInterfaces,
+                mainInterface,
+                interfaces,
                 classPool);
         Class<?> proxyClass = ctClass.toClass();
         classMap.put(className, proxyClass);
@@ -132,7 +132,8 @@ public class JavassistDuckPrxy implements DuckPrxy {
             final String className,
             final Object delegate,
             final Class<?> delegateClass,
-            final List<Class<?>> allInterfaces,
+            final Class<?> mainInterface,
+            final Class<?>[] interfaces,
             final ClassPool classPool)
     throws CannotCompileException, NotFoundException {
         final DelegateClassInformation info =
@@ -146,7 +147,20 @@ public class JavassistDuckPrxy implements DuckPrxy {
                 ctClass);
         delegateField.setModifiers(Modifier.PUBLIC);
         ctClass.addField(delegateField);
-        for (final Class<?> interfce : allInterfaces) {
+        if (mainInterface.isInterface()) {
+            ctClass.addInterface(classPool.get(mainInterface.getName()));
+        } else {
+            ctClass.setSuperclass(classPool.get(mainInterface.getName()));
+        }
+        addInterface(
+                classPool,
+                ctClass,
+                mainInterface,
+                delegateClass,
+                strategies,
+                info.subDelegateGetter);
+        for (final Class<?> interfce : interfaces) {
+            ctClass.addInterface(classPool.get(interfce.getName()));
             addInterface(
                     classPool,
                     ctClass,
@@ -164,9 +178,11 @@ public class JavassistDuckPrxy implements DuckPrxy {
     
     protected String createClassName(
             final Class<?> delegateClass,
-            final Collection<Class<?>> interfaces) {
+            final Class<?> mainInterface,
+            final Class<?>[] interfaces) {
         final StringBuilder builder = new StringBuilder(classNamePrefix)
-        .append(delegateClass.getName());
+        .append(delegateClass.getName())
+        .append("+").append(mainInterface.getName());
         for (final Class<?> intrfce : interfaces) {
             builder.append("+").append(intrfce.getName());
         }
@@ -181,18 +197,20 @@ public class JavassistDuckPrxy implements DuckPrxy {
             final List<MethodRetrieveStrategy> strategies,
             final Method subDelegateGetter)
     throws NotFoundException, CannotCompileException {
-        ctClass.addInterface(classPool.get(interfce.getName()));
         for (final Method method : interfce.getMethods()) {
-            addMethod(
-                    classPool,
-                    ctClass,
-                    method,
-                    delegateClass,
-                    strategies,
-                    subDelegateGetter);
+            if (!method.getDeclaringClass().equals(Object.class) &&
+                    isInterfaceMethod(method.getModifiers())) {
+                addMethod(
+                        classPool,
+                        ctClass,
+                        method,
+                        delegateClass,
+                        strategies,
+                        subDelegateGetter);
+            }
         }
     }
-    
+
     protected void addMethod(
             final ClassPool classPool,
             final CtClass ctClass,
@@ -207,6 +225,10 @@ public class JavassistDuckPrxy implements DuckPrxy {
                 methodName,
                 getCtClass(classPool, method.getParameterTypes()),
                 ctClass);
+        System.out.println("Adding " + methodName + " " + method.getModifiers() + " " + method.getDeclaringClass());
+        for (Class<?> pc : method.getParameterTypes()) {
+            System.out.println("  " + pc);
+        }
         final StringBuilder delegatePath = new StringBuilder("delegate.");
         final Method delegateMethod = getMethodDelegate(
                 method,
@@ -420,4 +442,15 @@ public class JavassistDuckPrxy implements DuckPrxy {
         return delegateMethod;
     }
 
+    /**
+     * Helper method to check whether a method is of interest,
+     * i.e., is it a public non-static method.
+     * @param modifiers The modifiers of the method
+     * @return true iff the method is of interest.
+     */
+    protected static boolean isInterfaceMethod(final int modifiers) {
+        return Modifier.isPublic(modifiers) &&
+        (modifiers & (4094 + Modifier.STATIC)) == 0;
+    }
+    
 }
