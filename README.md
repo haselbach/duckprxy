@@ -1,7 +1,8 @@
 # duckprxy
 
 ## What is it
-Duck typing is a style of dynamic typing where the type of an object
+[Duck typing](http://en.wikipedia.org/wiki/Duck_typing) is a style of
+dynamic typing where the type of an object
 is determined by its set of methods rather than by a defined class
 it belongs to.
 
@@ -13,7 +14,7 @@ by delegating to the object.
 ## Project Site
 More information can be found in the
 [duckprxy project's site](http://mr-co.de/projects/duckprxy/site/) (generated
-with [Maven](http://maven.apache.org/). Inter alia
+with [Maven](http://maven.apache.org/)). Inter alia
 [duckprxy's api doc](http://mr-co.de/projects/duckprxy/site/apidocs/).
 
 ## Example
